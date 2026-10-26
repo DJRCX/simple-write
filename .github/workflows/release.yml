@@ -19,6 +19,21 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: read release notes
+        id: notes
+        run: |
+          notes="$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")"
+          if [ -z "$notes" ]; then
+            notes="Installers for Windows and Linux are attached."
+          fi
+          {
+            echo "body<<NOTES_EOF"
+            printf '%s\n' "$notes"
+            echo "NOTES_EOF"
+          } >> "$GITHUB_OUTPUT"
 
       - name: install Linux dependencies
         if: matrix.platform == 'ubuntu-22.04'
@@ -45,6 +60,6 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: Simple Write v__VERSION__
-          releaseBody: Installers for Windows and Linux are attached.
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: false
           prerelease: false
