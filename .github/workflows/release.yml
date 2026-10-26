@@ -24,8 +24,14 @@ jobs:
 
       - name: read release notes
         id: notes
+        shell: bash
         run: |
-          notes="$(git tag -l --format='%(contents)' "$GITHUB_REF_NAME")"
+          tag="$GITHUB_REF_NAME"
+          case "$GITHUB_REF" in
+            refs/tags/*) ;;
+            *) tag="v$(node -p "require('./src-tauri/tauri.conf.json').version")" ;;
+          esac
+          notes="$(git tag -l --format='%(contents)' "$tag")"
           if [ -z "$notes" ]; then
             notes="Installers for Windows and Linux are attached."
           fi
