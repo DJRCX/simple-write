@@ -100,7 +100,7 @@ function dropSpot(editor: Editor, from: number, clientY: number, host: HTMLEleme
   const parent = resolved.parent
   const origin = resolved.start()
   const hostTop = host.getBoundingClientRect().top
-  let nearest: DropSpot & { distance: number } | null = null
+  const spots: Array<DropSpot & { distance: number }> = []
   parent.forEach((child, offset) => {
     const pos = origin + offset
     let dom: unknown
@@ -116,12 +116,13 @@ function dropSpot(editor: Editor, from: number, clientY: number, host: HTMLEleme
       { insertAt: pos + child.nodeSize, edge: rect.bottom },
     ]
     for (const edge of edges) {
-      const distance = Math.abs(clientY - edge.edge)
-      if (!nearest || distance < nearest.distance) {
-        nearest = { insertAt: edge.insertAt, top: edge.edge - hostTop, distance }
-      }
+      spots.push({ insertAt: edge.insertAt, top: edge.edge - hostTop, distance: Math.abs(clientY - edge.edge) })
     }
   })
+  const nearest = spots.reduce<DropSpot & { distance: number } | null>(
+    (best, spot) => (!best || spot.distance < best.distance ? spot : best),
+    null,
+  )
   if (!nearest) return null
   return { insertAt: nearest.insertAt, top: nearest.top }
 }
@@ -137,6 +138,7 @@ export function BlockAlign({ editor, host }: { editor: Editor; host: HTMLElement
 
   useEffect(() => {
     if (!host) return
+    const surface = host
 
     function place(position: number | null) {
       if (editor.isDestroyed) return
@@ -156,7 +158,7 @@ export function BlockAlign({ editor, host }: { editor: Editor; host: HTMLElement
         return
       }
       if (!(dom instanceof HTMLElement)) return
-      const top = dom.getBoundingClientRect().top - host.getBoundingClientRect().top
+      const top = dom.getBoundingClientRect().top - surface.getBoundingClientRect().top
       setTarget({ pos: found.pos, align: readAlign(found.node), top, alignable: alignable.has(found.node.type.name) })
     }
 
@@ -175,7 +177,7 @@ export function BlockAlign({ editor, host }: { editor: Editor; host: HTMLElement
 
     function onLeave(event: MouseEvent) {
       if (dragRef.current?.active || open) return
-      if (event.relatedTarget instanceof Node && host.contains(event.relatedTarget)) return
+      if (event.relatedTarget instanceof Node && surface.contains(event.relatedTarget)) return
       place(null)
     }
 
