@@ -10,6 +10,12 @@
 </p>
 
 <p align="center">
+  <a href="https://simple-write-nu.vercel.app">Website</a>
+  ·
+  <a href="https://github.com/DJRCX/simple-write/releases">Releases</a>
+</p>
+
+<p align="center">
   <img src="public/images/logo-text.png" alt="Simple Write" width="280" />
 </p>
 
