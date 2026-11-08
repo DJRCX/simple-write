@@ -60,6 +60,10 @@ jobs:
 
       - run: npm install
 
+      - name: check file associations
+        shell: bash
+        run: node scripts/check-file-associations.mjs
+
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
